@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 50px;
+            max-width: 600px;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .task-input {
+            margin-bottom: 20px;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn {
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            color: #dc3545;
+        }
+
+        .btn-complete {
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Task Management App</h2>
+        <div class="task-input">
+            <input type="text" id="taskInput" class="form-control" placeholder="Enter task...">
+        </div>
+        <ul class="task-list" id="taskList"></ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskInput = document.getElementById('taskInput');
+            const taskList = document.getElementById('taskList');
+
+            function createTaskItem(taskText) {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                li.innerHTML = `
+                    <span>${taskText}</span>
+                    <div>
+                        <button class="btn btn-complete">Complete</button>
+                        <button class="btn btn-delete">Delete</button>
+                    </div>
+                `;
+                return li;
+            }
+
+            function addTask() {
+                if (taskInput.value.trim() !== '') {
+                    const taskText = taskInput.value.trim();
+                    const taskItem = createTaskItem(taskText);
+                    taskList.appendChild(taskItem);
+                    taskInput.value = '';
+                }
+            }
+
+            function deleteTask(e) {
+                if (e.target.classList.contains('btn-delete')) {
+                    const taskItem = e.target.closest('.task-item');
+                    taskList.removeChild(taskItem);
+                }
+            }
+
+            function completeTask(e) {
+                if (e.target.classList.contains('btn-complete')) {
+                    const taskItem = e.target.closest('.task-item');
+                    taskItem.classList.toggle('completed');
+                }
+            }
+
+            taskInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+
+            taskList.addEventListener('click', function(e) {
+                deleteTask(e);
+                completeTask(e);
+            });
+        });
+    </script>
+</body>
+
+</html>
