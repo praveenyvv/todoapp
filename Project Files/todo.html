@@ -4,124 +4,461 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management App</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Advanced Task Management App</title>
+
+    <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
     <style>
         body {
-            background-color: #f8f9fa;
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+            transition: 0.3s;
+        }
+
+        .dark-mode {
+            background: #1e1e1e;
+            color: white;
         }
 
         .container {
-            margin-top: 50px;
-            max-width: 600px;
-            border-radius: 10px;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin-top: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .container {
+            background: #2b2b2b;
+            color: white;
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .task-input {
-            margin-bottom: 20px;
-        }
-
-        .task-list {
-            list-style: none;
-            padding: 0;
+            margin-bottom: 25px;
+            font-weight: bold;
         }
 
         .task-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: 0.3s;
         }
 
-        .task-item:last-child {
-            border-bottom: none;
+        .dark-mode .task-item {
+            background: #3a3a3a;
         }
 
-        .btn {
-            cursor: pointer;
+        .task-item:hover {
+            transform: scale(1.01);
         }
 
-        .btn-delete {
-            color: #dc3545;
+        .completed span {
+            text-decoration: line-through;
+            color: gray;
+            opacity: 0.7;
         }
 
-        .btn-complete {
-            color: #28a745;
+        .task-info {
+            flex: 1;
+        }
+
+        .priority-high {
+            background: #dc3545;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .priority-medium {
+            background: #ffc107;
+            color: black;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .priority-low {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-buttons button {
+            margin-right: 5px;
+        }
+
+        .task-date {
+            font-size: 12px;
+            color: gray;
+        }
+
+        .dark-mode .task-date {
+            color: lightgray;
         }
     </style>
 </head>
 
 <body>
+
     <div class="container">
-        <h2>Task Management App</h2>
-        <div class="task-input">
-            <input type="text" id="taskInput" class="form-control" placeholder="Enter task...">
+
+        <h2>Advanced Task Management App</h2>
+
+        <div class="top-controls">
+            <input type="text"
+                id="searchTask"
+                class="form-control"
+                placeholder="Search tasks...">
+
+            <button class="btn btn-dark"
+                id="darkModeBtn">
+                Dark Mode
+            </button>
         </div>
-        <ul class="task-list" id="taskList"></ul>
+
+        <div class="form-group">
+            <input type="text"
+                id="taskInput"
+                class="form-control"
+                placeholder="Enter task">
+        </div>
+
+        <div class="form-group">
+            <input type="date"
+                id="taskDate"
+                class="form-control">
+        </div>
+
+        <div class="form-group">
+            <select id="taskPriority"
+                class="form-control">
+                <option value="High">High Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="Low">Low Priority</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary btn-block"
+            id="addTaskBtn">
+            Add Task
+        </button>
+
+        <hr>
+
+        <div class="filter-buttons mb-3">
+            <button class="btn btn-secondary"
+                onclick="filterTasks('all')">
+                All
+            </button>
+
+            <button class="btn btn-success"
+                onclick="filterTasks('completed')">
+                Completed
+            </button>
+
+            <button class="btn btn-warning"
+                onclick="filterTasks('pending')">
+                Pending
+            </button>
+        </div>
+
+        <h5 id="taskCount">Total Tasks: 0</h5>
+
+        <div id="taskList"></div>
+
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const taskInput = document.getElementById('taskInput');
-            const taskList = document.getElementById('taskList');
 
-            function createTaskItem(taskText) {
-                const li = document.createElement('li');
-                li.className = 'task-item';
-                li.innerHTML = `
-                    <span>${taskText}</span>
-                    <div>
-                        <button class="btn btn-complete">Completeed</button>
-                        <button class="btn btn-delete">Deleted</button>
-                    </div>
-                `;
-                return li;
+        const taskInput = document.getElementById('taskInput');
+        const taskDate = document.getElementById('taskDate');
+        const taskPriority = document.getElementById('taskPriority');
+        const taskList = document.getElementById('taskList');
+        const taskCount = document.getElementById('taskCount');
+
+        // CREATE TASK
+        function createTaskItem(text, date, priority, completed = false) {
+
+            const taskDiv = document.createElement('div');
+
+            taskDiv.className = 'task-item';
+
+            if (completed) {
+                taskDiv.classList.add('completed');
             }
 
-            function addTask() {
-                if (taskInput.value.trim() !== '') {
-                    const taskText = taskInput.value.trim();
-                    const taskItem = createTaskItem(taskText);
-                    taskList.appendChild(taskItem);
-                    taskInput.value = '';
-                }
+            let priorityClass = '';
+
+            if (priority === 'High') {
+                priorityClass = 'priority-high';
+            }
+            else if (priority === 'Medium') {
+                priorityClass = 'priority-medium';
+            }
+            else {
+                priorityClass = 'priority-low';
             }
 
-            function deleteTask(e) {
-                if (e.target.classList.contains('btn-delete')) {
-                    const taskItem = e.target.closest('.task-item');
-                    taskList.removeChild(taskItem);
-                }
+            taskDiv.innerHTML = `
+            
+                <div class="task-info">
+                    <span>${text}</span>
+                    <br>
+
+                    <small class="task-date">
+                        Due: ${date || 'No Date'}
+                    </small>
+
+                    <br>
+
+                    <span class="${priorityClass}">
+                        ${priority}
+                    </span>
+                </div>
+
+                <div>
+
+                    <button class="btn btn-success btn-sm complete-btn">
+                        ✓
+                    </button>
+
+                    <button class="btn btn-warning btn-sm edit-btn">
+                        Edit
+                    </button>
+
+                    <button class="btn btn-danger btn-sm delete-btn">
+                        Delete
+                    </button>
+
+                </div>
+            `;
+
+            taskList.appendChild(taskDiv);
+
+            saveTasks();
+            updateTaskCount();
+        }
+
+        // ADD TASK
+        function addTask() {
+
+            const text = taskInput.value.trim();
+            const date = taskDate.value;
+            const priority = taskPriority.value;
+
+            if (text === '') {
+                alert('Please enter a task');
+                return;
             }
 
-            function completeTask(e) {
-                if (e.target.classList.contains('btn-complete')) {
-                    const taskItem = e.target.closest('.task-item');
-                    taskItem.classList.toggle('completed');
-                }
-            }
+            createTaskItem(text, date, priority);
 
-            taskInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    addTask();
-                }
+            taskInput.value = '';
+            taskDate.value = '';
+        }
+
+        // UPDATE COUNT
+        function updateTaskCount() {
+
+            const totalTasks =
+                document.querySelectorAll('.task-item').length;
+
+            taskCount.textContent =
+                `Total Tasks: ${totalTasks}`;
+        }
+
+        // SAVE TO LOCAL STORAGE
+        function saveTasks() {
+
+            const tasks = [];
+
+            document.querySelectorAll('.task-item')
+                .forEach(task => {
+
+                    tasks.push({
+
+                        text: task.querySelector('.task-info span').textContent,
+
+                        date: task.querySelector('.task-date')
+                            .textContent.replace('Due: ', ''),
+
+                        priority: task.querySelectorAll('.task-info span')[1]
+                            .textContent.trim(),
+
+                        completed:
+                            task.classList.contains('completed')
+
+                    });
+
+                });
+
+            localStorage.setItem('tasks',
+                JSON.stringify(tasks));
+        }
+
+        // LOAD TASKS
+        function loadTasks() {
+
+            const tasks =
+                JSON.parse(localStorage.getItem('tasks')) || [];
+
+            tasks.forEach(task => {
+
+                createTaskItem(
+                    task.text,
+                    task.date,
+                    task.priority,
+                    task.completed
+                );
+
             });
+        }
 
-            taskList.addEventListener('click', function(e) {
-                deleteTask(e);
-                completeTask(e);
-            });
+        // DELETE / COMPLETE / EDIT
+        taskList.addEventListener('click', function (e) {
+
+            const taskItem =
+                e.target.closest('.task-item');
+
+            // DELETE
+            if (e.target.classList.contains('delete-btn')) {
+
+                taskItem.remove();
+
+                saveTasks();
+                updateTaskCount();
+            }
+
+            // COMPLETE
+            if (e.target.classList.contains('complete-btn')) {
+
+                taskItem.classList.toggle('completed');
+
+                saveTasks();
+            }
+
+            // EDIT
+            if (e.target.classList.contains('edit-btn')) {
+
+                const currentText =
+                    taskItem.querySelector('.task-info span');
+
+                const updatedText =
+                    prompt('Edit task', currentText.textContent);
+
+                if (updatedText !== null &&
+                    updatedText.trim() !== '') {
+
+                    currentText.textContent =
+                        updatedText.trim();
+
+                    saveTasks();
+                }
+            }
+
         });
+
+        // SEARCH TASK
+        document.getElementById('searchTask')
+            .addEventListener('keyup', function () {
+
+                const value =
+                    this.value.toLowerCase();
+
+                document.querySelectorAll('.task-item')
+                    .forEach(task => {
+
+                        const text =
+                            task.innerText.toLowerCase();
+
+                        task.style.display =
+                            text.includes(value)
+                                ? 'flex'
+                                : 'none';
+
+                    });
+
+            });
+
+        // FILTER TASKS
+        function filterTasks(type) {
+
+            document.querySelectorAll('.task-item')
+                .forEach(task => {
+
+                    switch (type) {
+
+                        case 'completed':
+
+                            task.style.display =
+                                task.classList.contains('completed')
+                                    ? 'flex'
+                                    : 'none';
+
+                            break;
+
+                        case 'pending':
+
+                            task.style.display =
+                                !task.classList.contains('completed')
+                                    ? 'flex'
+                                    : 'none';
+
+                            break;
+
+                        default:
+
+                            task.style.display = 'flex';
+                    }
+
+                });
+
+        }
+
+        // DARK MODE
+        document.getElementById('darkModeBtn')
+            .addEventListener('click', function () {
+
+                document.body.classList.toggle('dark-mode');
+
+            });
+
+        // ENTER KEY ADD TASK
+        taskInput.addEventListener('keypress', function (e) {
+
+            if (e.key === 'Enter') {
+
+                addTask();
+            }
+
+        });
+
+        // BUTTON ADD TASK
+        document.getElementById('addTaskBtn')
+            .addEventListener('click', addTask);
+
+        // LOAD SAVED TASKS
+        loadTasks();
+
     </script>
+
 </body>
 
 </html>
